@@ -2,7 +2,7 @@
 
 namespace Inweb\Tools\PermissionsTool;
 
-use App\Models\Category;
+use Illuminate\Http\Request;
 use InWeb\Admin\App\ResourceTool;
 
 class RolesResourceTool extends ResourceTool
@@ -12,5 +12,10 @@ class RolesResourceTool extends ResourceTool
     public function name()
     {
         return __('Роли');
+    }
+
+    public function authorizedToSee(Request $request)
+    {
+        return $request->user()->can(PermissionsTool::uriKey() . ':viewAny');
     }
 }

@@ -2,11 +2,37 @@
     <div class="p-8">
         <heading class="mb-6">{{ __('Права доступа пользователей') }}</heading>
 
-        <card v-for="(role, $i) in roles" :key="$i" class="card--form" :caption="role.title">
+        <card v-for="(role, $i) in roles" :key="$i" class="card--form">
+            <div class="card__header flex items-center">
+                <h2 class="mr-auto">{{ role.title }}</h2>
+
+                <i class="far fa-times-circle text-grey-light cursor-pointer hover:text-danger ml-4"
+                   :title="__('Запретить все действия')"
+                   @click="updateAllForRole(role, false)"></i>
+
+                <i class="far fa-check text-grey-light cursor-pointer hover:text-success ml-4"
+                   :title="__('Разрешить все действия')"
+                   @click="updateAllForRole(role, true)"></i>
+            </div>
+
+
             <div class="p-4 flex flex-wrap">
                 <div v-for="(resource, uid) in role.resources" :key="uid">
                     <table class="border mr-4 mb-4">
-                        <caption class="font-bold py-1 mb-1">{{ resource.title }}</caption>
+                        <caption class="font-bold py-1 mb-1">
+                            <div class="flex justify-between whitespace-no-wrap px-4">
+                                <i class="far fa-times-circle text-grey-light cursor-pointer hover:text-danger"
+                                   :title="__('Запретить все действия')"
+                                   @click="updateAll(role, resource.uid, false)"></i>
+
+                                <div class="px-2">{{ resource.title }}</div>
+
+                                <i class="far fa-check text-grey-light cursor-pointer hover:text-success"
+                                   :title="__('Разрешить все действия')"
+                                   @click="updateAll(role, resource.uid, true)"></i>
+                            </div>
+                        </caption>
+
                         <tr v-for="(permission) in resource.permissions" :key="'action-' + permission.action"
                             class="hover:bg-grey-lighter">
                             <td class="py-2 px-4 border-b">{{ permission.title || permission.action }}</td>
@@ -69,7 +95,49 @@
 
                     this.$toasted.success(this.__('Права обновлены'))
                 })
-            }
+            },
+
+            async updateAll(role, resource, value) {
+                this.loading = true
+
+                App.api.request({
+                    method: 'post',
+                    url: root + '/' + role.id + '/' + resource + '/all',
+                    data: {
+                        value
+                    }
+                }).then(({permitted}) => {
+                    this.loading = false
+
+                    Object.keys(this.roles[role.id].resources[resource].permissions).forEach((action) => {
+                        this.roles[role.id].resources[resource].permissions[action].permitted = permitted
+                    })
+
+                    this.$toasted.success(this.__('Права обновлены'))
+                })
+            },
+
+            async updateAllForRole(role, value) {
+                this.loading = true
+
+                App.api.request({
+                    method: 'post',
+                    url: root + '/' + role.id + '/all',
+                    data: {
+                        value
+                    }
+                }).then(({permitted}) => {
+                    this.loading = false
+
+                    Object.keys(this.roles[role.id].resources).forEach((resource) => {
+                        Object.keys(this.roles[role.id].resources[resource].permissions).forEach((action) => {
+                            this.roles[role.id].resources[resource].permissions[action].permitted = permitted
+                        })
+                    })
+
+                    this.$toasted.success(this.__('Права обновлены'))
+                })
+            },
         },
     }
 </script>

@@ -366,6 +366,32 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 var root = 'tool/permissions-tool';
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
@@ -451,6 +477,90 @@ var root = 'tool/permissions-tool';
       }
 
       return update;
+    }(),
+    updateAll: function () {
+      var _updateAll = _asyncToGenerator(
+      /*#__PURE__*/
+      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee3(role, resource, value) {
+        var _this3 = this;
+
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                this.loading = true;
+                App.api.request({
+                  method: 'post',
+                  url: root + '/' + role.id + '/' + resource + '/all',
+                  data: {
+                    value: value
+                  }
+                }).then(function (_ref2) {
+                  var permitted = _ref2.permitted;
+                  _this3.loading = false;
+                  Object.keys(_this3.roles[role.id].resources[resource].permissions).forEach(function (action) {
+                    _this3.roles[role.id].resources[resource].permissions[action].permitted = permitted;
+                  });
+
+                  _this3.$toasted.success(_this3.__('Права обновлены'));
+                });
+
+              case 2:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function updateAll(_x4, _x5, _x6) {
+        return _updateAll.apply(this, arguments);
+      }
+
+      return updateAll;
+    }(),
+    updateAllForRole: function () {
+      var _updateAllForRole = _asyncToGenerator(
+      /*#__PURE__*/
+      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee4(role, value) {
+        var _this4 = this;
+
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                this.loading = true;
+                App.api.request({
+                  method: 'post',
+                  url: root + '/' + role.id + '/all',
+                  data: {
+                    value: value
+                  }
+                }).then(function (_ref3) {
+                  var permitted = _ref3.permitted;
+                  _this4.loading = false;
+                  Object.keys(_this4.roles[role.id].resources).forEach(function (resource) {
+                    Object.keys(_this4.roles[role.id].resources[resource].permissions).forEach(function (action) {
+                      _this4.roles[role.id].resources[resource].permissions[action].permitted = permitted;
+                    });
+                  });
+
+                  _this4.$toasted.success(_this4.__('Права обновлены'));
+                });
+
+              case 2:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function updateAllForRole(_x7, _x8) {
+        return _updateAllForRole.apply(this, arguments);
+      }
+
+      return updateAllForRole;
     }()
   }
 });
@@ -1321,83 +1431,133 @@ var render = function() {
       ]),
       _vm._v(" "),
       _vm._l(_vm.roles, function(role, $i) {
-        return _c(
-          "card",
-          {
-            key: $i,
-            staticClass: "card--form",
-            attrs: { caption: role.title }
-          },
-          [
-            _c(
-              "div",
-              { staticClass: "p-4 flex flex-wrap" },
-              _vm._l(role.resources, function(resource, uid) {
-                return _c("div", { key: uid }, [
-                  _c(
-                    "table",
-                    { staticClass: "border mr-4 mb-4" },
-                    [
-                      _c("caption", { staticClass: "font-bold py-1 mb-1" }, [
-                        _vm._v(_vm._s(resource.title))
-                      ]),
-                      _vm._v(" "),
-                      _vm._l(resource.permissions, function(permission) {
-                        return _c(
-                          "tr",
-                          {
-                            key: "action-" + permission.action,
-                            staticClass: "hover:bg-grey-lighter"
-                          },
-                          [
-                            _c("td", { staticClass: "py-2 px-4 border-b" }, [
-                              _vm._v(
-                                _vm._s(permission.title || permission.action)
-                              )
-                            ]),
-                            _vm._v(" "),
-                            _c(
-                              "td",
-                              {
-                                staticClass:
-                                  "py-2 px-4 border-b cursor-pointer",
-                                on: {
-                                  click: function($event) {
-                                    return _vm.update(
-                                      role,
-                                      resource.uid,
-                                      permission
-                                    )
-                                  }
-                                }
-                              },
-                              [
-                                permission.permitted
-                                  ? _c("i", {
-                                      staticClass: "far fa-check text-success"
-                                    })
-                                  : _vm._e(),
-                                _vm._v(" "),
-                                !permission.permitted
-                                  ? _c("i", {
-                                      staticClass:
-                                        "far fa-times-circle text-danger"
-                                    })
-                                  : _vm._e()
-                              ]
+        return _c("card", { key: $i, staticClass: "card--form" }, [
+          _c("div", { staticClass: "card__header flex items-center" }, [
+            _c("h2", { staticClass: "mr-auto" }, [_vm._v(_vm._s(role.title))]),
+            _vm._v(" "),
+            _c("i", {
+              staticClass:
+                "far fa-times-circle text-grey-light cursor-pointer hover:text-danger ml-4",
+              attrs: { title: _vm.__("Запретить все действия") },
+              on: {
+                click: function($event) {
+                  return _vm.updateAllForRole(role, false)
+                }
+              }
+            }),
+            _vm._v(" "),
+            _c("i", {
+              staticClass:
+                "far fa-check text-grey-light cursor-pointer hover:text-success ml-4",
+              attrs: { title: _vm.__("Разрешить все действия") },
+              on: {
+                click: function($event) {
+                  return _vm.updateAllForRole(role, true)
+                }
+              }
+            })
+          ]),
+          _vm._v(" "),
+          _c(
+            "div",
+            { staticClass: "p-4 flex flex-wrap" },
+            _vm._l(role.resources, function(resource, uid) {
+              return _c("div", { key: uid }, [
+                _c(
+                  "table",
+                  { staticClass: "border mr-4 mb-4" },
+                  [
+                    _c("caption", { staticClass: "font-bold py-1 mb-1" }, [
+                      _c(
+                        "div",
+                        {
+                          staticClass:
+                            "flex justify-between whitespace-no-wrap px-4"
+                        },
+                        [
+                          _c("i", {
+                            staticClass:
+                              "far fa-times-circle text-grey-light cursor-pointer hover:text-danger",
+                            attrs: { title: _vm.__("Запретить все действия") },
+                            on: {
+                              click: function($event) {
+                                return _vm.updateAll(role, resource.uid, false)
+                              }
+                            }
+                          }),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "px-2" }, [
+                            _vm._v(_vm._s(resource.title))
+                          ]),
+                          _vm._v(" "),
+                          _c("i", {
+                            staticClass:
+                              "far fa-check text-grey-light cursor-pointer hover:text-success",
+                            attrs: { title: _vm.__("Разрешить все действия") },
+                            on: {
+                              click: function($event) {
+                                return _vm.updateAll(role, resource.uid, true)
+                              }
+                            }
+                          })
+                        ]
+                      )
+                    ]),
+                    _vm._v(" "),
+                    _vm._l(resource.permissions, function(permission) {
+                      return _c(
+                        "tr",
+                        {
+                          key: "action-" + permission.action,
+                          staticClass: "hover:bg-grey-lighter"
+                        },
+                        [
+                          _c("td", { staticClass: "py-2 px-4 border-b" }, [
+                            _vm._v(
+                              _vm._s(permission.title || permission.action)
                             )
-                          ]
-                        )
-                      })
-                    ],
-                    2
-                  )
-                ])
-              }),
-              0
-            )
-          ]
-        )
+                          ]),
+                          _vm._v(" "),
+                          _c(
+                            "td",
+                            {
+                              staticClass: "py-2 px-4 border-b cursor-pointer",
+                              on: {
+                                click: function($event) {
+                                  return _vm.update(
+                                    role,
+                                    resource.uid,
+                                    permission
+                                  )
+                                }
+                              }
+                            },
+                            [
+                              permission.permitted
+                                ? _c("i", {
+                                    staticClass: "far fa-check text-success"
+                                  })
+                                : _vm._e(),
+                              _vm._v(" "),
+                              !permission.permitted
+                                ? _c("i", {
+                                    staticClass:
+                                      "far fa-times-circle text-danger"
+                                  })
+                                : _vm._e()
+                            ]
+                          )
+                        ]
+                      )
+                    })
+                  ],
+                  2
+                )
+              ])
+            }),
+            0
+          )
+        ])
       })
     ],
     2

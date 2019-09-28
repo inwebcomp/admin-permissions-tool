@@ -82,6 +82,59 @@ class PermissionsController extends Controller
         ];
     }
 
+    public function updateAll(AdminRequest $request, Role $role, $resource)
+    {
+        $permitted = (bool) $request->input('value');
+
+        $section = Admin::resourceForKey($resource);
+
+        if (! $section)
+            $section = Admin::toolForKey($resource);
+
+        if (! $section)
+            return abort(404, 'Section Not Found: ' . $section);
+
+        foreach ($section::permissionActions() as $action => $title) {
+            if ($permitted) {
+                $role->givePermissionTo($section::permissionActionName($action));
+            } else {
+                $role->revokePermissionTo($section::permissionActionName($action));
+            }
+        }
+
+        return [
+            'permitted' => $permitted
+        ];
+    }
+
+    public function updateAllForRole(AdminRequest $request, Role $role)
+    {
+        $permitted = (bool) $request->input('value');
+
+        $sections = array_merge(
+            Admin::$resources,
+            Admin::$tools
+        );
+
+        $sections = array_filter($sections, function ($section) {
+            return in_array(HasPermissions::class, class_uses_recursive($section));
+        });
+
+        foreach ($sections as $section) {
+            foreach ($section::permissionActions() as $action => $title) {
+                if ($permitted) {
+                    $role->givePermissionTo($section::permissionActionName($action));
+                } else {
+                    $role->revokePermissionTo($section::permissionActionName($action));
+                }
+            }
+        }
+
+        return [
+            'permitted' => $permitted
+        ];
+    }
+
     public function roles()
     {
         return Role::all()->map(function (Role $role) {
@@ -94,7 +147,7 @@ class PermissionsController extends Controller
 
     public function userRoles(AdminRequest $request)
     {
-        return $request->user()->roles->map(function (Role $role) {
+        return $request->user()->fresh()->roles->map(function (Role $role) {
             return [
                 'title' => Str::title($role->name),
                 'id'    => $role->id,

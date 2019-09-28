@@ -20,6 +20,10 @@ class ToolServiceProvider extends ServiceProvider
         Admin::serving(function (ServingAdmin $event) {
             Admin::script('permissions-tool', __DIR__.'/../dist/js/tool.js');
             Admin::style('permissions-tool', __DIR__.'/../dist/css/tool.css');
+
+            \Gate::before(function ($user, $ability) {
+                return $user->hasRole('super-admin') ? true : null;
+            });
         });
     }
 
