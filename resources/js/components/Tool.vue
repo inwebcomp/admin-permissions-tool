@@ -1,6 +1,6 @@
 <template>
     <div class="p-8">
-        <heading class="mb-6">{{ __('Привилегии пользователей') }}</heading>
+        <heading class="mb-6">{{ __('Права доступа пользователей') }}</heading>
 
         <card v-for="(role, $i) in roles" :key="$i" class="card--form" :caption="role.title">
             <div class="p-4 flex flex-wrap">
@@ -67,7 +67,7 @@
 
                     this.roles[role.id].resources[resource].permissions[action].permitted = permitted
 
-                    this.$toasted.success(this.__('Привилегии обновлены'))
+                    this.$toasted.success(this.__('Права обновлены'))
                 })
             }
         },

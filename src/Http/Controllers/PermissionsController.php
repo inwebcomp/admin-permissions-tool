@@ -5,25 +5,43 @@ namespace Inweb\Tools\PermissionsTool\Http\Controllers;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
 use InWeb\Admin\App\Admin;
+use InWeb\Admin\App\HasPermissions;
 use InWeb\Admin\App\Http\Requests\AdminRequest;
+use InWeb\Admin\App\Http\Requests\ResourceUpdateRequest;
+use InWeb\Admin\App\Models\AdminUser;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class PermissionsController extends Controller
 {
     public function index(AdminRequest $request)
     {
-        return Role::all()->map(function (Role $role) use ($request) {
+        $sections = array_merge(
+            Admin::$resources,
+            Admin::$tools
+        );
+
+        return Role::all()->filter(function (Role $role) {
+            return $role->name != 'super-admin';
+        })->map(function (Role $role) use ($sections, $request) {
             return [
                 'id'        => $role->id,
                 'title'     => Str::title($role->name),
-                'resources' => collect(Admin::availableResources($request))->map(function ($resource) use ($role) {
+                'resources' => collect($sections)->filter(function ($section) {
+                    return in_array(HasPermissions::class, class_uses_recursive($section));
+                })->map(function ($resource) use ($role) {
                     $permissions = $role->permissions->pluck('name')->toArray();
+                    $allPermissions = Permission::all(['name'])->pluck('name')->toArray();
+                    $resourcePermissions = collect($resource::permissionActions())
+                        ->filter(function ($title, $action) use ($allPermissions, $resource) {
+                            return in_array($resource::permissionActionName($action), $allPermissions);
+                        });
 
                     return [
                         'title'       => $resource::label(),
                         'uid'         => $key = $resource::uriKey(),
-                        'permissions' => collect($resource::permissionActions())
-                            ->map(function ($title, $action) use ($resource, $permissions, $key) {
+                        'permissions' =>
+                            collect($resourcePermissions)->map(function ($title, $action) use ($resource, $permissions, $key) {
                                 return [
                                     'title'     => $title,
                                     'action'    => $action,
@@ -31,6 +49,8 @@ class PermissionsController extends Controller
                                 ];
                             })->keyBy('action')
                     ];
+                })->filter(function($resource) {
+                    return count($resource['permissions']);
                 })->keyBy('uid')
             ];
         })->keyBy('id');
@@ -40,22 +60,69 @@ class PermissionsController extends Controller
     {
         $permitted = (bool) $request->input('value');
 
-        $resource = $request->resource();
+        $section = Admin::resourceForKey($resource);
 
-        if (! $resource)
-            return abort(404, 'Resource Not Found: ' . $resource);
+        if (! $section)
+            $section = Admin::toolForKey($resource);
 
-        if (! isset($resource::permissionActions()[$action]))
+        if (! $section)
+            return abort(404, 'Section Not Found: ' . $section);
+
+        if (! isset($section::permissionActions()[$action]))
             return abort(404, 'Action Not Found: ' . $action);
 
         if ($permitted) {
-            $role->givePermissionTo($resource::permissionActionName($action));
+            $role->givePermissionTo($section::permissionActionName($action));
         } else {
-            $role->revokePermissionTo($resource::permissionActionName($action));
+            $role->revokePermissionTo($section::permissionActionName($action));
         }
 
         return [
             'permitted' => $permitted
         ];
+    }
+
+    public function roles()
+    {
+        return Role::all()->map(function (Role $role) {
+            return [
+                'title' => Str::title($role->name),
+                'value' => $role->id,
+            ];
+        });
+    }
+
+    public function userRoles(AdminRequest $request)
+    {
+        return $request->user()->roles->map(function (Role $role) {
+            return [
+                'title' => Str::title($role->name),
+                'id'    => $role->id,
+            ];
+        });
+    }
+
+    public function assignRole(ResourceUpdateRequest $request)
+    {
+        /** @var AdminUser $model */
+        $model = $request->findModelOrFail();
+
+        $role = Role::findById($request->input('role'), 'api');
+
+        $model->assignRole($role);
+
+        return $this->userRoles($request);
+    }
+
+    public function removeRole(ResourceUpdateRequest $request)
+    {
+        /** @var AdminUser $model */
+        $model = $request->findModelOrFail();
+
+        $role = Role::findById($request->input('role'), 'api');
+
+        $model->removeRole($role);
+
+        return $this->userRoles($request);
     }
 }
