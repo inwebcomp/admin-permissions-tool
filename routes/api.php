@@ -17,8 +17,10 @@ Route::group(['prefix' => 'tool/permissions-tool'], function () {
     Route::get('', 'PermissionsController@index');
     Route::get('roles', 'PermissionsController@roles');
     Route::get('user/roles', 'PermissionsController@userRoles');
-    Route::post('roles/{resource}/{resourceId}', 'PermissionsController@assignRole');
-    Route::delete('roles/{resource}/{resourceId}', 'PermissionsController@removeRole');
+    Route::post('roles', 'PermissionsController@storeRole');
+    Route::delete('roles/{role}', 'PermissionsController@removeRole');
+    Route::post('roles/{resource}/{resourceId}', 'PermissionsController@assignRoleToUser');
+    Route::delete('roles/{resource}/{resourceId}', 'PermissionsController@removeRoleFromUser');
     Route::post('{role}/all', 'PermissionsController@updateAllForRole');
     Route::post('{role}/{resource}/all', 'PermissionsController@updateAll');
     Route::post('{role}/{resource}/{action}', 'PermissionsController@update');

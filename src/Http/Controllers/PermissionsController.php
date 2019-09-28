@@ -3,10 +3,11 @@
 namespace Inweb\Tools\PermissionsTool\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Str;
 use InWeb\Admin\App\Admin;
 use InWeb\Admin\App\HasPermissions;
 use InWeb\Admin\App\Http\Requests\AdminRequest;
+use InWeb\Admin\App\Http\Requests\ResourceDeleteRequest;
+use InWeb\Admin\App\Http\Requests\ResourceStoreRequest;
 use InWeb\Admin\App\Http\Requests\ResourceUpdateRequest;
 use InWeb\Admin\App\Models\AdminUser;
 use Spatie\Permission\Models\Permission;
@@ -22,11 +23,11 @@ class PermissionsController extends Controller
         );
 
         return Role::all()->filter(function (Role $role) {
-            return $role->name != 'super-admin';
+            return $role->name != 'Super Admin';
         })->map(function (Role $role) use ($sections, $request) {
             return [
                 'id'        => $role->id,
-                'title'     => Str::title($role->name),
+                'title'     => $role->name,
                 'resources' => collect($sections)->filter(function ($section) {
                     return in_array(HasPermissions::class, class_uses_recursive($section));
                 })->map(function ($resource) use ($role) {
@@ -139,7 +140,7 @@ class PermissionsController extends Controller
     {
         return Role::all()->map(function (Role $role) {
             return [
-                'title' => Str::title($role->name),
+                'title' => $role->name,
                 'value' => $role->id,
             ];
         });
@@ -149,33 +150,49 @@ class PermissionsController extends Controller
     {
         return $request->user()->fresh()->roles->map(function (Role $role) {
             return [
-                'title' => Str::title($role->name),
+                'title' => $role->name,
                 'id'    => $role->id,
             ];
         });
     }
 
-    public function assignRole(ResourceUpdateRequest $request)
+    public function assignRoleToUser(ResourceUpdateRequest $request)
     {
         /** @var AdminUser $model */
         $model = $request->findModelOrFail();
 
-        $role = Role::findById($request->input('role'), 'api');
+        $role = Role::findById($request->input('role'), 'admin');
 
         $model->assignRole($role);
 
         return $this->userRoles($request);
     }
 
-    public function removeRole(ResourceUpdateRequest $request)
+    public function removeRoleFromUser(ResourceUpdateRequest $request)
     {
         /** @var AdminUser $model */
         $model = $request->findModelOrFail();
 
-        $role = Role::findById($request->input('role'), 'api');
+        $role = Role::findById($request->input('role'), 'admin');
 
         $model->removeRole($role);
 
         return $this->userRoles($request);
+    }
+
+    public function storeRole(ResourceStoreRequest $request)
+    {
+        if (! $role = $request->input('role'))
+            abort(429, 'Role name is required');
+
+        return Role::findOrCreate($role);
+    }
+
+    public function removeRole(ResourceDeleteRequest $request, Role $role)
+    {
+        if ($role->name == 'Super Admin')
+            abort(403, "You can't delete Super Admin role");
+
+        $role->delete();
     }
 }

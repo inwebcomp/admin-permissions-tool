@@ -1,18 +1,26 @@
 <template>
     <div class="p-8">
-        <heading class="mb-6">{{ __('Права доступа пользователей') }}</heading>
+        <heading class="mb-6 flex justify-between items-center">
+            {{ __('Права доступа пользователей') }}
+
+            <app-button @click.native="addRole" type="link">{{ __('Добавить роль') }}</app-button>
+        </heading>
 
         <card v-for="(role, $i) in roles" :key="$i" class="card--form">
             <div class="card__header flex items-center">
                 <h2 class="mr-auto">{{ role.title }}</h2>
 
-                <i class="far fa-times-circle text-grey-light cursor-pointer hover:text-danger ml-4"
+                <i class="far fa-times-circle text-grey-light p-4 cursor-pointer hover:text-danger"
                    :title="__('Запретить все действия')"
                    @click="updateAllForRole(role, false)"></i>
 
-                <i class="far fa-check text-grey-light cursor-pointer hover:text-success ml-4"
+                <i class="far fa-check text-grey-light p-4 cursor-pointer hover:text-success"
                    :title="__('Разрешить все действия')"
                    @click="updateAllForRole(role, true)"></i>
+
+                <i class="far fa-trash-alt cursor-pointer p-4 px-6 hover:text-danger ml-auto"
+                   :title="__('Удалить роль')"
+                   @click="removeRole(role)"></i>
             </div>
 
 
@@ -62,6 +70,8 @@
 
         mounted() {
             this.fetch()
+
+            App.$on('add-role', this.fetch)
         },
 
         methods: {
@@ -136,6 +146,28 @@
                     })
 
                     this.$toasted.success(this.__('Права обновлены'))
+                })
+            },
+
+            addRole() {
+                this.$showPopup('add-role')
+            },
+
+            async removeRole(role) {
+                if (! confirm(this.__('Вы уверены что хотите удалить роль?')))
+                    return
+
+                this.loading = true
+
+                App.api.request({
+                    method: 'delete',
+                    url: root + '/roles/' + role.id,
+                }).then(() => {
+                    this.loading = false
+
+                    this.fetch()
+
+                    this.$toasted.success(this.__('Роль удалена'))
                 })
             },
         },
