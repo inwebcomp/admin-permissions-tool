@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// \Route::group(['prefix' => 'tool/permissions-tool'], function (Request $request) {
-//     //
-// });
+Route::group(['prefix' => 'tool/permissions-tool'], function () {
+    Route::get('', 'PermissionsController@index');
+    Route::post('{role}/{resource}/{action}', 'PermissionsController@update');
+});
