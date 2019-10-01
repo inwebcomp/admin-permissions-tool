@@ -45,7 +45,7 @@
                 this.loading = true
 
                 App.api.request({
-                    url: root + '/user/roles'
+                    url: root + '/user/roles/' + this.resourceId
                 }).then(data => {
                     this.userRoles = data
                     this.loading = false

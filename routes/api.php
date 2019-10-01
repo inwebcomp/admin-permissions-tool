@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::group(['prefix' => 'tool/permissions-tool'], function () {
     Route::get('', 'PermissionsController@index');
     Route::get('roles', 'PermissionsController@roles');
-    Route::get('user/roles', 'PermissionsController@userRoles');
+    Route::get('user/roles/{adminUser}', 'PermissionsController@userRoles');
     Route::post('roles', 'PermissionsController@storeRole');
     Route::delete('roles/{role}', 'PermissionsController@removeRole');
     Route::post('roles/{resource}/{resourceId}', 'PermissionsController@assignRoleToUser');

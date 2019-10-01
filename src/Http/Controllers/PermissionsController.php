@@ -146,9 +146,9 @@ class PermissionsController extends Controller
         });
     }
 
-    public function userRoles(AdminRequest $request)
+    public function userRoles(AdminRequest $request, AdminUser $adminUser)
     {
-        return $request->user()->fresh()->roles->map(function (Role $role) {
+        return $adminUser->fresh()->roles->map(function (Role $role) {
             return [
                 'title' => $role->name,
                 'id'    => $role->id,
@@ -165,7 +165,7 @@ class PermissionsController extends Controller
 
         $model->assignRole($role);
 
-        return $this->userRoles($request);
+        return $this->userRoles($request, $model);
     }
 
     public function removeRoleFromUser(ResourceUpdateRequest $request)
@@ -177,7 +177,7 @@ class PermissionsController extends Controller
 
         $model->removeRole($role);
 
-        return $this->userRoles($request);
+        return $this->userRoles($request, $model);
     }
 
     public function storeRole(ResourceStoreRequest $request)
