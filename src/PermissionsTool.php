@@ -22,7 +22,7 @@ class PermissionsTool extends Tool
 
     public function authorizedToSee(Request $request)
     {
-        return $request->user()->can(static::uriKey() . ':viewAny');
+        return optional($request->user())->can(static::uriKey() . ':viewAny');
     }
 
     public static function permissionActions()

@@ -16,6 +16,6 @@ class RolesResourceTool extends ResourceTool
 
     public function authorizedToSee(Request $request)
     {
-        return $request->user()->can(PermissionsTool::uriKey() . ':viewAny');
+        return optional($request->user())->can(PermissionsTool::uriKey() . ':viewAny');
     }
 }
