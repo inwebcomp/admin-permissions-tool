@@ -10,6 +10,8 @@ class PermissionsTool extends Tool
 {
     use HasPermissions;
 
+    public static $group = 'users';
+
     public static function uriKey()
     {
         return 'permissions-tool';
